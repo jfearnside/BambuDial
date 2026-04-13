@@ -1,0 +1,9 @@
+build/
+managed_components/
+dependencies.lock
+sdkconfig
+sdkconfig.old
+PrintSphere-main/
+.claude/
+.DS_Store
+main/config.h.local

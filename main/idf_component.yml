@@ -1,0 +1,2 @@
+dependencies:
+  espressif/m5dial: "^3.1.0"
