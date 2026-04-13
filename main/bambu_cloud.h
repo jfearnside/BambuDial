@@ -1,6 +1,7 @@
 #pragma once
 
 #include "printer_state.h"
+#include "config_store.h"
 
 /*
  * Bambu Cloud Client
@@ -9,13 +10,13 @@
  * and connects to cloud MQTT for status updates.
  */
 
-/* Authenticate with Bambu Cloud. Returns true on success.
- * Uses email/password from config.h, or direct token if set. */
+/* Set cloud credentials from device config. Call before login. */
+void bambu_cloud_set_config(const device_config_t *cfg);
+
+/* Authenticate with Bambu Cloud. Returns true on success. */
 bool bambu_cloud_login(void);
 
-/* Fetch list of bound printers from cloud.
- * Populates the printer manager with discovered printers.
- * Must be called after successful login. */
+/* Fetch list of bound printers from cloud. */
 bool bambu_cloud_fetch_printers(printer_manager_t *mgr);
 
 /* Start cloud MQTT connections for all discovered printers. */
@@ -23,6 +24,3 @@ void bambu_cloud_mqtt_start(printer_manager_t *mgr);
 
 /* Stop cloud MQTT connections. */
 void bambu_cloud_mqtt_stop(void);
-
-/* Get the access token (for debug/display). */
-const char *bambu_cloud_get_token(void);

@@ -4,7 +4,10 @@
 #include <stdbool.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/semphr.h"
-#include "config.h"
+
+#ifndef MAX_PRINTERS
+#define MAX_PRINTERS 3
+#endif
 
 typedef enum {
     PRINT_STATE_UNKNOWN = 0,
@@ -95,8 +98,10 @@ typedef struct {
     SemaphoreHandle_t mutex;
 } printer_manager_t;
 
-/* Initialize the printer manager with configs from config.h */
+/* Initialize the printer manager (empty, no printers) */
 void printer_manager_init(printer_manager_t *mgr);
+
+/* Load printer configs — declared in printer_state.c, requires config_store.h */
 
 /* Thread-safe: lock before reading/writing printer state */
 bool printer_manager_lock(printer_manager_t *mgr, TickType_t timeout);

@@ -445,3 +445,46 @@ void ui_cycle_info_page(void)
     s_info_page = (s_info_page + 1) % max_pages;
     s_tick = 0;  /* reset timer so page shows for full duration */
 }
+
+void ui_show_setup_screen(void)
+{
+    lv_obj_t *scr = lv_screen_active();
+    lv_obj_clean(scr);
+    lv_obj_set_style_bg_color(scr, lv_color_hex(0x000000), 0);
+    lv_obj_set_style_bg_opa(scr, LV_OPA_COVER, 0);
+
+    /* Title */
+    lv_obj_t *title = lv_label_create(scr);
+    lv_obj_align(title, LV_ALIGN_CENTER, 0, -55);
+    lv_obj_set_style_text_color(title, lv_color_hex(0x00FF00), 0);
+    lv_obj_set_style_text_font(title, &lv_font_montserrat_14, 0);
+    lv_label_set_text(title, "BambuDial Setup");
+
+    /* Instructions */
+    lv_obj_t *l1 = lv_label_create(scr);
+    lv_obj_align(l1, LV_ALIGN_CENTER, 0, -25);
+    lv_obj_set_style_text_color(l1, lv_color_hex(0x87CEEB), 0);
+    lv_obj_set_style_text_font(l1, &lv_font_montserrat_12, 0);
+    lv_label_set_text(l1, "Connect to WiFi:");
+
+    /* AP name */
+    lv_obj_t *ap = lv_label_create(scr);
+    lv_obj_align(ap, LV_ALIGN_CENTER, 0, 0);
+    lv_obj_set_style_text_color(ap, lv_color_hex(0xFFFFFF), 0);
+    lv_obj_set_style_text_font(ap, &lv_font_montserrat_14, 0);
+    lv_label_set_text(ap, "BambuDial-Setup");
+
+    /* Second instruction */
+    lv_obj_t *l2 = lv_label_create(scr);
+    lv_obj_align(l2, LV_ALIGN_CENTER, 0, 30);
+    lv_obj_set_style_text_color(l2, lv_color_hex(0x87CEEB), 0);
+    lv_obj_set_style_text_font(l2, &lv_font_montserrat_12, 0);
+    lv_label_set_text(l2, "Then open browser");
+
+    /* URL */
+    lv_obj_t *url = lv_label_create(scr);
+    lv_obj_align(url, LV_ALIGN_CENTER, 0, 55);
+    lv_obj_set_style_text_color(url, lv_color_hex(0x666666), 0);
+    lv_obj_set_style_text_font(url, &lv_font_montserrat_10, 0);
+    lv_label_set_text(url, "http://192.168.4.1");
+}

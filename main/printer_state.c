@@ -1,24 +1,34 @@
 #include "printer_state.h"
+#include "config_store.h"
 #include <string.h>
 #include <strings.h>
-
-static const printer_state_t s_printer_configs[] = PRINTER_CONFIGS;
 
 void printer_manager_init(printer_manager_t *mgr)
 {
     memset(mgr, 0, sizeof(*mgr));
-    mgr->num_printers = NUM_PRINTERS;
     mgr->selected = 0;
     mgr->mutex = xSemaphoreCreateMutex();
+    mgr->num_printers = 0;
 
-    for (int i = 0; i < NUM_PRINTERS && i < MAX_PRINTERS; i++) {
-        strncpy(mgr->printers[i].name, s_printer_configs[i].name, sizeof(mgr->printers[i].name) - 1);
-        strncpy(mgr->printers[i].ip, s_printer_configs[i].ip, sizeof(mgr->printers[i].ip) - 1);
-        strncpy(mgr->printers[i].serial, s_printer_configs[i].serial, sizeof(mgr->printers[i].serial) - 1);
-        strncpy(mgr->printers[i].access_code, s_printer_configs[i].access_code, sizeof(mgr->printers[i].access_code) - 1);
+    /* Initialize all printer slots to safe defaults */
+    for (int i = 0; i < MAX_PRINTERS; i++) {
         mgr->printers[i].state = PRINT_STATE_UNKNOWN;
         mgr->printers[i].tray_now = 255;
         mgr->printers[i].stg_cur = -1;
+    }
+}
+
+void printer_manager_load_from_config(printer_manager_t *mgr, const device_config_t *cfg)
+{
+    if (printer_manager_lock(mgr, pdMS_TO_TICKS(500))) {
+        mgr->num_printers = cfg->num_printers;
+        for (int i = 0; i < cfg->num_printers && i < MAX_PRINTERS; i++) {
+            strncpy(mgr->printers[i].name, cfg->printers[i].name, sizeof(mgr->printers[i].name) - 1);
+            strncpy(mgr->printers[i].ip, cfg->printers[i].ip, sizeof(mgr->printers[i].ip) - 1);
+            strncpy(mgr->printers[i].serial, cfg->printers[i].serial, sizeof(mgr->printers[i].serial) - 1);
+            strncpy(mgr->printers[i].access_code, cfg->printers[i].access_code, sizeof(mgr->printers[i].access_code) - 1);
+        }
+        printer_manager_unlock(mgr);
     }
 }
 

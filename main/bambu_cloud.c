@@ -1,7 +1,6 @@
 #include "bambu_cloud.h"
 #include "bambu_parse.h"
 #include "error_lookup.h"
-#include "config.h"
 #include "cJSON.h"
 #include "esp_log.h"
 #include "esp_http_client.h"
@@ -28,9 +27,24 @@ static const char *MQTT_HOST_CN = "cn.mqtt.bambulab.com";
 extern const uint8_t bambu_ca_pem_start[] asm("_binary_bambu_ca_bundle_pem_start");
 extern const uint8_t bambu_ca_pem_end[]   asm("_binary_bambu_ca_bundle_pem_end");
 
+/* Stored config */
+static char s_email[64];
+static char s_password[64];
+static char s_region[4] = "us";
+static char s_direct_token[2048];
+
 /* Session state */
 static char s_access_token[2048];
 static char s_mqtt_username[64];
+
+void bambu_cloud_set_config(const device_config_t *cfg)
+{
+    strncpy(s_email, cfg->cloud_email, sizeof(s_email) - 1);
+    strncpy(s_password, cfg->cloud_pass, sizeof(s_password) - 1);
+    strncpy(s_region, cfg->cloud_region, sizeof(s_region) - 1);
+    strncpy(s_direct_token, cfg->cloud_token, sizeof(s_direct_token) - 1);
+    if (s_region[0] == '\0') strcpy(s_region, "us");
+}
 
 /* HTTP response buffer */
 typedef struct {
@@ -54,13 +68,13 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 
 static const char *get_api_base(void)
 {
-    if (strcmp(BAMBU_REGION, "cn") == 0) return API_BASE_CN;
+    if (strcmp(s_region, "cn") == 0) return API_BASE_CN;
     return API_BASE_US;
 }
 
 static const char *get_mqtt_host(void)
 {
-    if (strcmp(BAMBU_REGION, "cn") == 0) return MQTT_HOST_CN;
+    if (strcmp(s_region, "cn") == 0) return MQTT_HOST_CN;
     return MQTT_HOST_US;
 }
 
@@ -126,8 +140,8 @@ static bool decode_jwt_username(const char *token)
 bool bambu_cloud_login(void)
 {
     /* Check if a direct token is provided */
-    if (strlen(BAMBU_TOKEN) > 0) {
-        strncpy(s_access_token, BAMBU_TOKEN, sizeof(s_access_token) - 1);
+    if (strlen(s_direct_token) > 0) {
+        strncpy(s_access_token, s_direct_token, sizeof(s_access_token) - 1);
         if (decode_jwt_username(s_access_token)) {
             ESP_LOGI(TAG, "Using direct token, username=%s", s_mqtt_username);
             return true;
@@ -137,8 +151,8 @@ bool bambu_cloud_login(void)
     }
 
     /* Check email/password are set */
-    if (strlen(BAMBU_EMAIL) == 0 || strlen(BAMBU_PASSWORD) == 0) {
-        ESP_LOGE(TAG, "Cloud mode requires BAMBU_EMAIL and BAMBU_PASSWORD in config.h");
+    if (strlen(s_email) == 0 || strlen(s_password) == 0) {
+        ESP_LOGE(TAG, "Cloud mode requires s_email and s_password in config.h");
         return false;
     }
 
@@ -148,8 +162,8 @@ bool bambu_cloud_login(void)
 
     /* Build request body */
     cJSON *body = cJSON_CreateObject();
-    cJSON_AddStringToObject(body, "account", BAMBU_EMAIL);
-    cJSON_AddStringToObject(body, "password", BAMBU_PASSWORD);
+    cJSON_AddStringToObject(body, "account", s_email);
+    cJSON_AddStringToObject(body, "password", s_password);
     cJSON_AddStringToObject(body, "apiError", "");
     char *payload = cJSON_PrintUnformatted(body);
     cJSON_Delete(body);
@@ -201,12 +215,12 @@ bool bambu_cloud_login(void)
     }
     if (cJSON_IsString(login_type)) {
         if (strcmp(login_type->valuestring, "verifyCode") == 0) {
-            ESP_LOGW(TAG, "Email verification required! Set BAMBU_TOKEN in config.h instead.");
+            ESP_LOGW(TAG, "Email verification required! Set s_direct_token in config.h instead.");
             cJSON_Delete(root);
             return false;
         }
         if (strcmp(login_type->valuestring, "tfa") == 0) {
-            ESP_LOGW(TAG, "2FA required! Set BAMBU_TOKEN in config.h instead.");
+            ESP_LOGW(TAG, "2FA required! Set s_direct_token in config.h instead.");
             cJSON_Delete(root);
             return false;
         }
