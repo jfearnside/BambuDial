@@ -4,7 +4,7 @@ Bambu Lab 3D printer status monitor for the [M5Stack M5Dial](https://docs.m5stac
 
 Monitor up to 3 Bambu Lab printers from a compact 1.28" round display. Turn the dial to switch printers. Auto-rotates between active prints. Works without putting printers in LAN-only mode.
 
-![M5Dial](https://static-cdn.m5stack.com/resource/docs/products/core/M5Dial/img-2d8d68e8-da3c-45e2-84c6-f4c113e1b4c8.webp)
+![M5Dial](https://shop.m5stack.com/cdn/shop/files/1_61f0c846-f03d-4f09-afb1-c1b0bc8d1c77_1200x1200.webp?v=1696659476)
 
 ## Features
 
@@ -39,11 +39,12 @@ No tools, no compiling, no command line needed.
 
 ### M5Stack M5Dial
 - **Purchase**: [M5Stack Official Store](https://shop.m5stack.com/products/m5stack-dial-esp32-s3-smart-rotary-knob-w-1-28-round-touch-screen) (~$20-25 USD)
+- **Purchase** [Ali Express Store] (https://www.aliexpress.us/item/3256809697970615.html) (Currently $13 with free shipping)
 - **Specs**: ESP32-S3, 240x240 round GC9A01 LCD, rotary encoder, touch screen, USB-C
-- **Also available on**: Amazon, AliExpress, Mouser, DigiKey
+- **Also available on**: Amazon, Mouser, DigiKey
 
 ### USB-C Cable
-Any USB-C data cable for flashing (not charge-only).
+Any USB-C data cable for flashing and power (not charge-only).
 
 ### Bambu Lab Printer(s)
 Tested with X1C, P2S. Should work with any Bambu Lab printer (P1P, P1S, A1, A1 Mini, X1E, etc.).

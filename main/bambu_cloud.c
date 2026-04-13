@@ -386,6 +386,15 @@ static void parse_cloud_report(printer_state_t *ps, const char *data, int len)
         ps->nozzle_temp = (float)item->valuedouble;
     if ((item = cJSON_GetObjectItem(print_obj, "nozzle_target_temper")) && cJSON_IsNumber(item))
         ps->nozzle_target = (float)item->valuedouble;
+    /* Secondary nozzle (H2D dual extruder) */
+    if ((item = cJSON_GetObjectItem(print_obj, "secondary_nozzle_temper")) && cJSON_IsNumber(item))
+        ps->nozzle2_temp = (float)item->valuedouble;
+    else if ((item = cJSON_GetObjectItem(print_obj, "right_nozzle_temper")) && cJSON_IsNumber(item))
+        ps->nozzle2_temp = (float)item->valuedouble;
+    if ((item = cJSON_GetObjectItem(print_obj, "secondary_nozzle_target_temper")) && cJSON_IsNumber(item))
+        ps->nozzle2_target = (float)item->valuedouble;
+    else if ((item = cJSON_GetObjectItem(print_obj, "right_nozzle_target_temper")) && cJSON_IsNumber(item))
+        ps->nozzle2_target = (float)item->valuedouble;
     if ((item = cJSON_GetObjectItem(print_obj, "bed_temper")) && cJSON_IsNumber(item))
         ps->bed_temp = (float)item->valuedouble;
     if ((item = cJSON_GetObjectItem(print_obj, "bed_target_temper")) && cJSON_IsNumber(item))

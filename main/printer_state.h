@@ -72,6 +72,8 @@ typedef struct {
     /* Temperatures */
     float nozzle_temp;
     float nozzle_target;
+    float nozzle2_temp;        /* secondary nozzle (H2D only), 0 if not present */
+    float nozzle2_target;
     float bed_temp;
     float bed_target;
 

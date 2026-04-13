@@ -147,6 +147,9 @@ a:hover { text-decoration: underline; }
   • Access Code: Settings → LAN Only → Access Code<br>
   • IP Address: Settings → WiFi<br>
   • Serial: Settings → Device Info<br><br>
+  <strong>H2D / H2S (requires Developer Mode for local):</strong><br>
+  • Enable Developer Mode first, then find Access Code in LAN settings<br>
+  • Or use Cloud mode (no Developer Mode needed)<br><br>
   <strong>Shortcut — find all at once in Bambu Studio's config:</strong><br>
   &nbsp;&nbsp;macOS: <code>~/Library/Application Support/BambuStudio/BambuStudio.conf</code><br>
   &nbsp;&nbsp;Windows: <code>%APPDATA%\BambuStudio\BambuStudio.conf</code><br>
@@ -180,7 +183,7 @@ a:hover { text-decoration: underline; }
 
 <div class="card">
 <h2>Supported Printers</h2>
-<p>Works with any Bambu Lab printer with local MQTT:</p>
+<p>Works with any Bambu Lab printer:</p>
 <p>
   <span class="badge">X1C</span>
   <span class="badge">X1E</span>
@@ -190,9 +193,13 @@ a:hover { text-decoration: underline; }
   <span class="badge">P2S</span>
   <span class="badge">A1</span>
   <span class="badge">A1 Mini</span>
+  <span class="badge">H2D</span>
+  <span class="badge">H2D Pro</span>
+  <span class="badge">H2S</span>
 </p>
 <div class="note">
-  Printers do NOT need to be in "LAN Only" mode. Local MQTT works alongside normal cloud connectivity.
+  Printers do NOT need to be in "LAN Only" mode. Local MQTT works alongside normal cloud connectivity.<br><br>
+  <strong>H-series note:</strong> H2D/H2S printers require "Developer Mode" enabled on the printer for local MQTT. Cloud mode works without it. Dual nozzle temperatures are supported for H2D.
 </div>
 </div>
 

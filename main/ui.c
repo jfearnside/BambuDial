@@ -378,13 +378,23 @@ void ui_update(void)
     }
 
     /* Temperatures + icon colors */
-    char temp_buf[24];
+    char temp_buf[40];
 
-    snprintf(temp_buf, sizeof(temp_buf), "%.0f/%.0f", ps->nozzle_temp, ps->nozzle_target);
+    /* Nozzle — show both if dual extruder (H2D) */
+    bool has_nozzle2 = (ps->nozzle2_temp > 0 || ps->nozzle2_target > 0);
+    if (has_nozzle2) {
+        snprintf(temp_buf, sizeof(temp_buf), "%.0f|%.0f", ps->nozzle_temp, ps->nozzle2_temp);
+    } else {
+        snprintf(temp_buf, sizeof(temp_buf), "%.0f/%.0f", ps->nozzle_temp, ps->nozzle_target);
+    }
     lv_label_set_text(lbl_nozzle, temp_buf);
-    if (ps->nozzle_target > 0 && ps->nozzle_temp < ps->nozzle_target - 2)
+
+    /* Nozzle icon color — use hottest nozzle for color decision */
+    float noz_temp_max = has_nozzle2 ? (ps->nozzle_temp > ps->nozzle2_temp ? ps->nozzle_temp : ps->nozzle2_temp) : ps->nozzle_temp;
+    float noz_tgt_max = has_nozzle2 ? (ps->nozzle_target > ps->nozzle2_target ? ps->nozzle_target : ps->nozzle2_target) : ps->nozzle_target;
+    if (noz_tgt_max > 0 && noz_temp_max < noz_tgt_max - 2)
         lv_obj_set_style_text_color(lbl_nozzle_icon, lv_color_hex(0xFFA500), 0);
-    else if (ps->nozzle_temp > ps->nozzle_target + 5 && ps->nozzle_target > 0)
+    else if (noz_temp_max > noz_tgt_max + 5 && noz_tgt_max > 0)
         lv_obj_set_style_text_color(lbl_nozzle_icon, lv_color_hex(0x3399FF), 0);
     else
         lv_obj_set_style_text_color(lbl_nozzle_icon, lv_color_hex(0xFFFFFF), 0);
