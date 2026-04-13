@@ -14,3 +14,6 @@ void ui_show_selected(void);
 
 /* Get the progress arc widget (used as encoder focus target). */
 lv_obj_t *ui_get_arc(void);
+
+/* Manually cycle the info page (called from button press). */
+void ui_cycle_info_page(void);

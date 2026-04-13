@@ -29,6 +29,28 @@ typedef enum { MODE_LOCAL, MODE_CLOUD } connection_mode_t;
 #define BAMBU_TOKEN     ""   /* Optional: paste JWT token directly to bypass login */
 
 /*
+ * Timezone (POSIX TZ format for ETA display)
+ * Examples:
+ *   "MST7MDT,M3.2.0,M11.1.0"    — US Mountain (Denver)
+ *   "EST5EDT,M3.2.0,M11.1.0"    — US Eastern (New York)
+ *   "CST6CDT,M3.2.0,M11.1.0"    — US Central (Chicago)
+ *   "PST8PDT,M3.2.0,M11.1.0"    — US Pacific (LA)
+ *   "GMT0BST-1,M3.5.0/1,M10.5.0/2" — UK (London)
+ *   "CET-1CEST,M3.5.0,M10.5.0/3"  — Central Europe
+ *   "AEST-10AEDT,M10.1.0,M4.1.0/3" — Australia Eastern
+ */
+#define TIMEZONE        "EST5EDT,M3.2.0,M11.1.0"
+
+/*
+ * Auto-rotate Display
+ * When enabled, automatically cycles between printers that are actively
+ * printing. If only one printer is active, stays on that one.
+ * Manual encoder rotation temporarily pauses auto-rotate for one cycle.
+ */
+#define AUTO_ROTATE_ENABLED     1       /* 1 = on (default), 0 = off */
+#define AUTO_ROTATE_INTERVAL_S  30      /* seconds between switches */
+
+/*
  * Local Printer Configuration (only needed for MODE_LOCAL)
  * For each printer you need:
  *   - IP address on local network

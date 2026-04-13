@@ -1,4 +1,5 @@
 #include "bambu_cloud.h"
+#include "bambu_parse.h"
 #include "error_lookup.h"
 #include "config.h"
 #include "cJSON.h"
@@ -352,8 +353,17 @@ static void parse_cloud_report(printer_state_t *ps, const char *data, int len)
 
     cJSON *item;
 
-    if ((item = cJSON_GetObjectItem(print_obj, "gcode_state")) && cJSON_IsString(item))
-        ps->state = parse_gcode_state(item->valuestring);
+    if ((item = cJSON_GetObjectItem(print_obj, "gcode_state")) && cJSON_IsString(item)) {
+        print_state_t new_state = parse_gcode_state(item->valuestring);
+        if (ps->dismissed) {
+            if (new_state != PRINT_STATE_FINISHED && new_state != PRINT_STATE_FAILED) {
+                ps->dismissed = false;
+                ps->state = new_state;
+            }
+        } else {
+            ps->state = new_state;
+        }
+    }
     if ((item = cJSON_GetObjectItem(print_obj, "mc_percent")) && cJSON_IsNumber(item))
         ps->progress = item->valueint;
     if ((item = cJSON_GetObjectItem(print_obj, "mc_remaining_time")) && cJSON_IsNumber(item))
@@ -380,6 +390,9 @@ static void parse_cloud_report(printer_state_t *ps, const char *data, int len)
         else if (ps->print_error == 0)
             ps->error_message[0] = '\0';
     }
+
+    /* AMS and print stage */
+    parse_ams_and_stage(ps, print_obj);
 
     cJSON_Delete(root);
 }

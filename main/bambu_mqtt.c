@@ -1,4 +1,5 @@
 #include "bambu_mqtt.h"
+#include "bambu_parse.h"
 #include "error_lookup.h"
 #include "cJSON.h"
 #include "esp_log.h"
@@ -42,8 +43,20 @@ static void parse_print_report(printer_state_t *ps, const char *data, int len)
 
     cJSON *item;
 
-    if ((item = cJSON_GetObjectItem(print_obj, "gcode_state")) && cJSON_IsString(item))
-        ps->state = parse_gcode_state(item->valuestring);
+    if ((item = cJSON_GetObjectItem(print_obj, "gcode_state")) && cJSON_IsString(item)) {
+        print_state_t new_state = parse_gcode_state(item->valuestring);
+        /* If user dismissed DONE/FAILED, keep it as IDLE until printer actually changes state */
+        if (ps->dismissed) {
+            if (new_state != PRINT_STATE_FINISHED && new_state != PRINT_STATE_FAILED) {
+                /* Printer moved to a genuinely different state — clear dismiss */
+                ps->dismissed = false;
+                ps->state = new_state;
+            }
+            /* else: still FINISH/FAILED from MQTT — keep our IDLE override */
+        } else {
+            ps->state = new_state;
+        }
+    }
     if ((item = cJSON_GetObjectItem(print_obj, "mc_percent")) && cJSON_IsNumber(item))
         ps->progress = item->valueint;
     if ((item = cJSON_GetObjectItem(print_obj, "mc_remaining_time")) && cJSON_IsNumber(item))
@@ -71,14 +84,23 @@ static void parse_print_report(printer_state_t *ps, const char *data, int len)
             ps->error_message[0] = '\0';
     }
 
+    /* AMS and print stage */
+    parse_ams_and_stage(ps, print_obj);
+
     cJSON_Delete(root);
 }
 
 static void handle_complete_message(const char *data, int len)
 {
     if (s_active_idx < 0 || !s_mgr) return;
+    ESP_LOGI(TAG, "[%d] Received complete message (%d bytes)", s_active_idx, len);
     if (printer_manager_lock(s_mgr, pdMS_TO_TICKS(200))) {
         parse_print_report(&s_mgr->printers[s_active_idx], data, len);
+        ESP_LOGI(TAG, "[%d] State: %s, nozzle=%.0f/%.0f",
+                 s_active_idx,
+                 print_state_name(s_mgr->printers[s_active_idx].state),
+                 s_mgr->printers[s_active_idx].nozzle_temp,
+                 s_mgr->printers[s_active_idx].nozzle_target);
         printer_manager_unlock(s_mgr);
     }
 }
@@ -116,6 +138,9 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t event_i
         break;
 
     case MQTT_EVENT_DATA:
+        ESP_LOGI(TAG, "[%d] DATA: data_len=%d total=%d offset=%d",
+                 s_active_idx, event->data_len, event->total_data_len,
+                 event->current_data_offset);
         if (event->total_data_len == event->data_len) {
             /* Single unfragmented message */
             handle_complete_message(event->data, event->data_len);
@@ -126,6 +151,8 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t event_i
                 s_reassembly_len = 0;
                 if (!s_reassembly_buf) {
                     s_reassembly_buf = malloc(REASSEMBLY_BUF_SIZE);
+                    ESP_LOGI(TAG, "[%d] Allocated reassembly buffer: %s",
+                             s_active_idx, s_reassembly_buf ? "OK" : "FAILED");
                 }
             }
             if (s_reassembly_buf &&
@@ -235,6 +262,15 @@ void bambu_mqtt_switch(int printer_idx)
 {
     if (!s_mgr) return;
     connect_to_printer(printer_idx);
+}
+
+void bambu_mqtt_request_pushall(void)
+{
+    if (s_client && s_active_idx >= 0) {
+        const char *cmd = "{\"pushing\":{\"sequence_id\":\"0\",\"command\":\"pushall\"}}";
+        esp_mqtt_client_publish(s_client, s_topic_request, cmd, 0, 0, 0);
+        ESP_LOGI(TAG, "[%d] Re-sent pushall request", s_active_idx);
+    }
 }
 
 void bambu_mqtt_stop(void)
