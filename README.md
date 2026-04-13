@@ -20,6 +20,21 @@ Monitor up to 3 Bambu Lab printers from a compact 1.28" round display. Turn the 
 - **TLS secured** — embedded Bambu CA certificates for proper certificate verification
 - **SNTP time sync** — accurate ETA display with configurable timezone
 
+## Easy Install (No Coding Required)
+
+**[Install BambuDial from your browser →](https://jfearnside.github.io/BambuDial/)**
+
+1. Open the link above in **Chrome or Edge**
+2. Connect your M5Dial via USB
+3. Click **"Install BambuDial"**
+4. Connect your phone to **"BambuDial-Setup"** WiFi
+5. Enter your printer details in the web form
+6. Done!
+
+No tools, no compiling, no command line needed.
+
+---
+
 ## Hardware Required
 
 ### M5Stack M5Dial
@@ -33,7 +48,7 @@ Any USB-C data cable for flashing (not charge-only).
 ### Bambu Lab Printer(s)
 Tested with X1C, P2S. Should work with any Bambu Lab printer (P1P, P1S, A1, A1 Mini, X1E, etc.).
 
-## Quick Start
+## Developer Setup (Building from Source)
 
 ### 1. Install ESP-IDF v5.4+
 
@@ -67,27 +82,7 @@ git clone https://github.com/jfearnside/BambuDial.git
 cd BambuDial
 ```
 
-### 3. Configure
-
-Edit `main/config.h` with your details:
-
-```c
-/* WiFi */
-#define WIFI_SSID       "YourNetwork"
-#define WIFI_PASS       "YourPassword"
-
-/* Timezone — see examples in config.h */
-#define TIMEZONE        "EST5EDT,M3.2.0,M11.1.0"
-
-/* Printers */
-#define NUM_PRINTERS    2
-#define PRINTER_CONFIGS { \
-    { .name = "X1C",  .ip = "192.168.1.100", .serial = "...", .access_code = "..." }, \
-    { .name = "P2S",  .ip = "192.168.1.101", .serial = "...", .access_code = "..." }, \
-}
-```
-
-### 4. Build and Flash
+### 3. Build and Flash
 
 ```bash
 . ~/esp/esp-idf/export.sh      # required each terminal session
@@ -97,6 +92,8 @@ idf.py -p /dev/tty.usbmodem* flash monitor
 ```
 
 Press `Ctrl+]` to exit the serial monitor.
+
+On first boot, BambuDial starts in setup mode — connect to the "BambuDial-Setup" WiFi and configure via the web portal. No need to edit config files.
 
 ## Finding Your Printer Details
 

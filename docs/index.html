@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BambuDial — Install</title>
+<script type="module" src="https://unpkg.com/esp-web-tools@10/dist/web/install-button.js?module"></script>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #0a0a0a;
+  color: #fff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 20px;
+}
+.container { max-width: 600px; width: 100%; }
+h1 { font-size: 36px; color: #00FF00; margin-bottom: 8px; text-align: center; }
+.tagline { color: #94A3B8; text-align: center; margin-bottom: 40px; font-size: 16px; }
+.card {
+  background: #111;
+  border: 1px solid #222;
+  border-radius: 16px;
+  padding: 32px;
+  margin-bottom: 24px;
+}
+.card h2 { font-size: 20px; margin-bottom: 16px; color: #87CEEB; }
+.card p { color: #aaa; line-height: 1.6; margin-bottom: 12px; }
+.card ul { color: #aaa; line-height: 1.8; padding-left: 20px; }
+.card li { margin-bottom: 4px; }
+.install-card {
+  text-align: center;
+  background: #0a1a0a;
+  border-color: #00FF00;
+}
+.install-card h2 { color: #00FF00; }
+esp-web-install-button {
+  display: block;
+  margin: 20px auto;
+}
+esp-web-install-button button {
+  background: #00FF00;
+  color: #000;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 40px;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+esp-web-install-button button:hover { background: #00cc00; }
+.steps { counter-reset: step; }
+.steps li { list-style: none; padding-left: 36px; position: relative; margin-bottom: 16px; }
+.steps li::before {
+  counter-increment: step;
+  content: counter(step);
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  background: #00FF00;
+  color: #000;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 24px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.badge {
+  display: inline-block;
+  background: #1a1a2e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 4px 10px;
+  font-size: 12px;
+  color: #87CEEB;
+  margin: 2px;
+}
+.note {
+  background: #1a1a0a;
+  border: 1px solid #444400;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-top: 16px;
+  font-size: 13px;
+  color: #cccc88;
+}
+a { color: #00FF00; text-decoration: none; }
+a:hover { text-decoration: underline; }
+.footer {
+  margin-top: 40px;
+  text-align: center;
+  color: #444;
+  font-size: 13px;
+}
+.footer a { color: #666; }
+</style>
+</head>
+<body>
+<div class="container">
+
+<h1>BambuDial</h1>
+<p class="tagline">Bambu Lab printer monitor for M5Stack M5Dial</p>
+
+<div class="card install-card">
+<h2>Install BambuDial</h2>
+<p>Connect your M5Dial via USB and click install.<br>No software needed — works in Chrome and Edge.</p>
+<esp-web-install-button manifest="manifest.json">
+  <button slot="activate">Install BambuDial</button>
+  <span slot="unsupported">
+    <p style="color:#FF6666">Your browser doesn't support Web Serial.<br>Please use <a href="https://www.google.com/chrome/">Chrome</a> or Edge.</p>
+  </span>
+  <span slot="not-allowed">
+    <p style="color:#FF6666">Serial access denied. Reload and try again.</p>
+  </span>
+</esp-web-install-button>
+<div class="note">
+  Requires Chrome or Edge on desktop. After flashing, connect to the "BambuDial-Setup" WiFi to configure.
+</div>
+</div>
+
+<div class="card">
+<h2>Setup After Flashing</h2>
+<ol class="steps">
+  <li>M5Dial boots and shows <strong>"BambuDial Setup"</strong> on the display</li>
+  <li>Connect your phone or laptop to <strong>BambuDial-Setup</strong> WiFi</li>
+  <li>A config page opens automatically (or go to <strong>http://192.168.4.1</strong>)</li>
+  <li>Enter your WiFi, printer details (IP, serial, access code), and timezone</li>
+  <li>Click <strong>Save & Reboot</strong> — your dial starts monitoring!</li>
+</ol>
+<div class="note">
+  Find printer details on the LCD: Settings → Network → LAN Access Code & IP Address.
+  Or check Bambu Studio's config file for all printers at once.
+</div>
+</div>
+
+<div class="card">
+<h2>Features</h2>
+<ul>
+  <li>Real-time print progress with color-coded arc</li>
+  <li>Nozzle & bed temperatures with heating/cooling icons</li>
+  <li>AMS filament type, color, and humidity</li>
+  <li>Print stage detail (leveling, heating, calibrating...)</li>
+  <li>Auto-rotate between active printers</li>
+  <li>ETA & time remaining (alternating)</li>
+  <li>900+ error codes with human-readable messages</li>
+  <li>Local MQTT or Bambu Cloud connection</li>
+</ul>
+</div>
+
+<div class="card">
+<h2>Hardware</h2>
+<p>You need an <strong>M5Stack M5Dial</strong> — a compact ESP32-S3 device with a 1.28" round display and rotary encoder.</p>
+<p>
+  <a href="https://shop.m5stack.com/products/m5stack-dial-esp32-s3-smart-rotary-knob-w-1-28-round-touch-screen">M5Stack Store (~$25)</a> ·
+  <a href="https://www.amazon.com/s?k=m5stack+m5dial">Amazon</a> ·
+  <a href="https://www.aliexpress.com/w/wholesale-m5stack-m5dial.html">AliExpress</a>
+</p>
+</div>
+
+<div class="card">
+<h2>Supported Printers</h2>
+<p>Works with any Bambu Lab printer with local MQTT:</p>
+<p>
+  <span class="badge">X1C</span>
+  <span class="badge">X1E</span>
+  <span class="badge">X1</span>
+  <span class="badge">P1P</span>
+  <span class="badge">P1S</span>
+  <span class="badge">P2S</span>
+  <span class="badge">A1</span>
+  <span class="badge">A1 Mini</span>
+</p>
+<div class="note">
+  Printers do NOT need to be in "LAN Only" mode. Local MQTT works alongside normal cloud connectivity.
+</div>
+</div>
+
+<div class="footer">
+  <a href="https://github.com/jfearnside/BambuDial">GitHub</a> ·
+  Open source · MIT License
+</div>
+
+</div>
+</body>
+</html>
