@@ -134,8 +134,14 @@ a:hover { text-decoration: underline; }
   <li>Click <strong>Save & Reboot</strong> — your dial starts monitoring!</li>
 </ol>
 <div class="note">
-  Find printer details on the LCD: Settings → Network → LAN Access Code & IP Address.
-  Or check Bambu Studio's config file for all printers at once.
+  <strong>Where to find printer details:</strong><br>
+  • <strong>IP Address:</strong> Printer LCD → Settings → Network, or check your router's DHCP client list<br>
+  • <strong>Serial Number:</strong> Printer LCD → Settings → Device Info, or in Bambu Studio's device tab<br>
+  • <strong>Access Code:</strong> Printer LCD → Settings → Network → LAN Access Code<br>
+  • <strong>Shortcut:</strong> All serials and access codes are in Bambu Studio's config file:<br>
+  &nbsp;&nbsp;macOS: <code>~/Library/Application Support/BambuStudio/BambuStudio.conf</code><br>
+  &nbsp;&nbsp;Windows: <code>%APPDATA%\BambuStudio\BambuStudio.conf</code><br>
+  &nbsp;&nbsp;Look for the <code>"access_code"</code> section — it maps serial numbers to access codes.
 </div>
 </div>
 
