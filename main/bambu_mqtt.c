@@ -3,6 +3,7 @@
 #include "error_lookup.h"
 #include "cJSON.h"
 #include "esp_log.h"
+#include "esp_timer.h"
 #include "mqtt_client.h"
 #include <string.h>
 #include <stdio.h>
@@ -26,6 +27,9 @@ static char s_topic_request[64];
 static char *s_reassembly_buf = NULL;
 static int s_reassembly_len = 0;
 static int s_reassembly_total = 0;
+
+/* Data freshness tracking */
+static int64_t s_last_data_time_ms = 0;
 
 static void parse_print_report(printer_state_t *ps, const char *data, int len)
 {
@@ -102,14 +106,9 @@ static void parse_print_report(printer_state_t *ps, const char *data, int len)
 static void handle_complete_message(const char *data, int len)
 {
     if (s_active_idx < 0 || !s_mgr) return;
-    ESP_LOGI(TAG, "[%d] Received complete message (%d bytes)", s_active_idx, len);
+    s_last_data_time_ms = esp_timer_get_time() / 1000;
     if (printer_manager_lock(s_mgr, pdMS_TO_TICKS(200))) {
         parse_print_report(&s_mgr->printers[s_active_idx], data, len);
-        ESP_LOGI(TAG, "[%d] State: %s, nozzle=%.0f/%.0f",
-                 s_active_idx,
-                 print_state_name(s_mgr->printers[s_active_idx].state),
-                 s_mgr->printers[s_active_idx].nozzle_temp,
-                 s_mgr->printers[s_active_idx].nozzle_target);
         printer_manager_unlock(s_mgr);
     }
 }
@@ -147,9 +146,6 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t event_i
         break;
 
     case MQTT_EVENT_DATA:
-        ESP_LOGI(TAG, "[%d] DATA: data_len=%d total=%d offset=%d",
-                 s_active_idx, event->data_len, event->total_data_len,
-                 event->current_data_offset);
         if (event->total_data_len == event->data_len) {
             /* Single unfragmented message */
             handle_complete_message(event->data, event->data_len);
@@ -160,8 +156,6 @@ static void mqtt_event_handler(void *arg, esp_event_base_t base, int32_t event_i
                 s_reassembly_len = 0;
                 if (!s_reassembly_buf) {
                     s_reassembly_buf = malloc(REASSEMBLY_BUF_SIZE);
-                    ESP_LOGI(TAG, "[%d] Allocated reassembly buffer: %s",
-                             s_active_idx, s_reassembly_buf ? "OK" : "FAILED");
                 }
             }
             if (s_reassembly_buf &&
@@ -218,6 +212,7 @@ static void connect_to_printer(int idx)
 
     stop_current_connection();
     s_active_idx = idx;
+    s_last_data_time_ms = 0;  /* reset — will be set when first data arrives */
 
     printer_state_t *ps = &s_mgr->printers[idx];
 
@@ -271,6 +266,22 @@ void bambu_mqtt_switch(int printer_idx)
 {
     if (!s_mgr) return;
     connect_to_printer(printer_idx);
+}
+
+bool bambu_mqtt_is_data_stale(int timeout_s)
+{
+    if (s_last_data_time_ms == 0) return false;  /* no data yet — still connecting */
+    int64_t now_ms = esp_timer_get_time() / 1000;
+    int64_t age_ms = now_ms - s_last_data_time_ms;
+    return age_ms > (int64_t)timeout_s * 1000;
+}
+
+void bambu_mqtt_force_reconnect(void)
+{
+    if (s_active_idx >= 0 && s_mgr) {
+        ESP_LOGW(TAG, "[%d] Force reconnecting (data stale)", s_active_idx);
+        connect_to_printer(s_active_idx);
+    }
 }
 
 void bambu_mqtt_request_pushall(void)

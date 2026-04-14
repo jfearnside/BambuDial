@@ -333,6 +333,15 @@ void app_main(void)
             pushall_timer_s = 0;
         }
 
+        /* Watchdog: if no data received for 60 seconds, force reconnect */
+        if (bambu_mqtt_is_data_stale(60)) {
+            ESP_LOGW(TAG, "Data stale for 60s — forcing reconnect");
+            bambu_mqtt_force_reconnect();
+            pushall_timer_s = 0;
+            display_time_s = 0;
+            continue;
+        }
+
         if (!s_cfg.auto_rotate) continue;
 
         if (s_auto_rotate_paused) {

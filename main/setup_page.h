@@ -120,6 +120,18 @@ input:focus,select:focus{border-color:#00FF00;outline:none}
 <button type="submit" class="btn btn-save">Save & Reboot</button>
 </form>
 
+<fieldset style="margin-top:16px">
+<legend>Backup & Restore</legend>
+<p style="color:#aaa;font-size:12px;margin-bottom:10px">Save your config as a file, or restore from a previous backup.</p>
+<div class="row">
+<button type="button" class="btn btn-add" onclick="backupConfig()">Download Backup</button>
+<label class="btn btn-add" style="text-align:center;cursor:pointer">
+  Restore Backup
+  <input type="file" accept=".json" style="display:none" onchange="restoreConfig(this)">
+</label>
+</div>
+</fieldset>
+
 <script>
 let printerCount=0;
 function addPrinter(name,ip,serial,code){
@@ -188,6 +200,49 @@ document.getElementById('form').onsubmit=function(e){
   .then(()=>{msg.className='msg ok';msg.textContent='Saved! Rebooting...';msg.style.display='block';setTimeout(()=>location.reload(),5000);})
   .catch(err=>{msg.className='msg err';msg.textContent='Error: '+err.message;msg.style.display='block';});
 };
+
+function backupConfig(){
+  fetch('/api/config').then(r=>r.json()).then(cfg=>{
+    const blob=new Blob([JSON.stringify(cfg,null,2)],{type:'application/json'});
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);
+    a.download='nodem5-backup.json';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }).catch(()=>alert('Failed to download config'));
+}
+
+function restoreConfig(input){
+  const file=input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const cfg=JSON.parse(e.target.result);
+      // Populate the form with restored values
+      if(cfg.wifi_ssid)document.getElementById('wifi_ssid').value=cfg.wifi_ssid;
+      if(cfg.wifi_pass)document.getElementById('wifi_pass').value=cfg.wifi_pass;
+      if(cfg.mode==='cloud'){document.querySelector('input[value=cloud]').checked=true;toggleCloud();}
+      else{document.querySelector('input[value=local]').checked=true;toggleCloud();}
+      if(cfg.timezone){const tz=document.getElementById('timezone');for(let o of tz.options)if(o.value===cfg.timezone){o.selected=true;break;}}
+      if(cfg.auto_rotate!==undefined)document.getElementById('auto_rotate').value=cfg.auto_rotate?'1':'0';
+      if(cfg.auto_rotate_s)document.getElementById('auto_rotate_s').value=cfg.auto_rotate_s;
+      if(cfg.cloud_email)document.querySelector('[name=cloud_email]').value=cfg.cloud_email;
+      if(cfg.cloud_region)document.querySelector('[name=cloud_region]').value=cfg.cloud_region;
+      if(cfg.cloud_token)document.querySelector('[name=cloud_token]').value=cfg.cloud_token;
+      // Rebuild printer cards
+      document.getElementById('printers').innerHTML='';
+      printerCount=0;
+      if(cfg.printers&&cfg.printers.length){
+        cfg.printers.forEach(p=>addPrinter(p.name,p.ip,p.serial,p.access_code));
+      }else{addPrinter();}
+      const msg=document.getElementById('msg');
+      msg.className='msg ok';msg.textContent='Config restored from backup. Review and click Save & Reboot.';msg.style.display='block';
+    }catch(err){alert('Invalid backup file: '+err.message);}
+  };
+  reader.readAsText(file);
+  input.value='';  // reset so same file can be selected again
+}
 </script>
 </body></html>
 )rawhtml";
